@@ -224,12 +224,12 @@ div.levelEditorUI {
     background: #997c7c;
     transform: translateX(25px) translateY(-5px);
     border-radius: 10px;
-
 }
 
 .selectedGridCell {
     background: #222;
     border: 2px dashed #fff;
+   
 }
 
 .staticScreen {

@@ -70,9 +70,11 @@
 
 
     const SOUNDS = {
-        Click:new Audio('Sounds/click.wav'), 
+        Click:new Audio('Sounds/click.ogg'), 
         InvertedMusic:new Audio('Sounds/inverted.ogg'),
-        Music:new Audio('Sounds/music.ogg')
+        Music:new Audio('Sounds/music.ogg'),
+        Collected:new Audio('Sounds/collected.ogg'),
+        Movement:new Audio('Sounds/moved.ogg')  
     };
 
     const OBJECT_TYPE = {
@@ -119,6 +121,7 @@
     let AI_ENTITIES = [];
     let checkPattern = [];
     let currentLevel = [];
+    let lastHoveredSprite; 
     let editMode = true;
     let selectedSprite;
     let tmpLevelData;
@@ -151,6 +154,7 @@
             player.position = new Vector2(x,y);
             
             if (GetSprite(x,y).objectType === OBJECT_TYPE.Collectable) {
+                SOUNDS.Collected.play();
                 if (GetSprite(x,y) === SPRITES.GoldenFreddy) {
                     for (let cell of document.querySelectorAll('.gridCell')) cell.style.filter = 'invert(1)';
                     RotateLevel(180); 
@@ -210,7 +214,7 @@
                 cellImage.classList.add('bluredLevel'); 
                 gridCell.appendChild(cellImage);
 
-                // Sprite Editor Logic
+                // Map Editor Logic
                 gridCell.addEventListener('click', (e) => {
                     if (!editMode) return;
                     let clickPos = GetGridPosition(e.currentTarget);
@@ -221,10 +225,11 @@
                         cell.classList.remove('entity');
                         cell.removeAttribute('entityData');
                         SwapSprite(clickPos, SPRITES.Empty);
+                        lastHoveredSprite = SPRITES.Empty.File;
                         RenderGrid();
                         return; 
                     }
-                    else SwapSprite(clickPos, selectedSprite);
+                    else {SwapSprite(clickPos, selectedSprite); lastHoveredSprite = selectedSprite.File;};
                     
                     if (selectedSprite.tag === TAGS.Player) {
                         SwapSprite(player.position, SPRITES.Empty);
@@ -251,8 +256,22 @@
                     RenderGrid();
                 });
 
-                gridCell.addEventListener('mouseenter', (e) => { if(!editMode) return; e.currentTarget.classList.add('selectedGridCell');});
-                gridCell.addEventListener('mouseleave', (e) => { e.currentTarget.classList.remove('selectedGridCell');});
+                gridCell.addEventListener('mouseenter', (e) => { 
+                    if(!editMode) return; 
+                    let sprite = e.currentTarget.childNodes[0];
+                    e.currentTarget.classList.add('selectedGridCell');
+                    lastHoveredSprite = sprite.src;
+                    sprite.src = selectedSprite.File;
+                    sprite.style.opacity = '0.5';
+                });
+                
+                gridCell.addEventListener('mouseleave', (e) => { 
+                    if(!editMode) return;
+                    e.currentTarget.classList.remove('selectedGridCell');
+                    let sprite = e.currentTarget.childNodes[0];
+                    sprite.src = lastHoveredSprite;
+                    sprite.style.opacity = '1';
+                });
 
                 gridRow.appendChild(gridCell);
             }
@@ -390,6 +409,7 @@
         if (entity.overridedSprite != entity.sprite) SwapSprite(entity.position, entity.overridedSprite);
         else SwapSprite(entity.position, SPRITES.Empty);
         
+        SOUNDS.Movement.play();
         entity.position = pos;
 
         RenderGrid();
@@ -569,10 +589,10 @@ function TurnEditMode() {
     SwapSprite(player.position, SPRITES.Empty);
     SwapSprite(player.spawnPosition, player.sprite);
     player.position = player.spawnPosition;
-
-    currentLevel = tmpLevelData.slice();
+    
     AI_ENTITIES.length = 0;
     RenderGrid();
+    LoadLevelData();
 }
 
 function SpawnEntities() {
@@ -583,9 +603,33 @@ function SpawnEntities() {
 }
 
 function TurnPlayMode() {
-    tmpLevelData = currentLevel.slice();
+    clearInterval(process);
+    CopyLevelData();
     player.score = 0;
     SpawnEntities();
+}
+
+function CopyLevelData() {
+    tmpLevelData = [];
+    for (let i = 0; i < currentLevel.length; i++) {
+        let row = [];
+        for (let j = 0; j < currentLevel[i].length; j++) {
+          row.push(currentLevel[i][j]);
+        }
+        tmpLevelData.push(row);
+    }
+}
+
+function LoadLevelData() {
+    currentLevel.length = 0;
+    for (let i = 0; i < tmpLevelData.length; i++) {
+        let row = [];
+        for (let j = 0; j < tmpLevelData[i].length; j++) {
+          row.push(tmpLevelData[i][j]);
+        }
+        currentLevel.push(row);
+    }
+    tmpLevelData = undefined;
 }
 
 // Initialize Game 
