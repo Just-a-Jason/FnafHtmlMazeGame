@@ -5,9 +5,10 @@ class ObjectType {
 };
 
 class Entity {
-    constructor(sprite, aiType) {
+    constructor(sprite, aiType, dialogues) {
         this.position = new Vector2(0,0),
         this.overridedSprite = undefined;
+        this.dialogues = dialogues;
         this.lastIDSelected = 0;
         this.sprite = sprite;
         this.aiType = aiType;
@@ -55,3 +56,11 @@ class Sprite {
         this.powerup = powerup;
     }
 };
+
+class Dialog {
+    constructor(text,color='#fff',hasShadow=true) {
+        this.hasShadow = hasShadow;
+        this.color = color;
+        this.text = text;
+    }
+}

@@ -68,12 +68,12 @@ const GRID_SCAN_MODE = {
 }
 
 const ENTITIES = {
-    NightmareFoxy: new Entity(SPRITES.NightmareFoxy, AI_TYPE.Wander),
-    GoldenFreddy:new Entity(SPRITES.GoldenFreddy, AI_TYPE.Teleport),
-    Cupcake:new Entity(SPRITES.Cupcake, AI_TYPE.Wander),
-    Bonnie:new Entity(SPRITES.Bonnie,  AI_TYPE.Wander),
-    Freddy:new Entity(SPRITES.Freddy,  AI_TYPE.Wander),
-    Chica: new Entity(SPRITES.Chica, AI_TYPE.Wander),
-    Foxy:new Entity(SPRITES.Foxy, AI_TYPE.Wander),
-    Springtrap: new Entity(SPRITES.Springtrap, AI_TYPE.Wander)
+    NightmareFoxy: new Entity(SPRITES.NightmareFoxy, AI_TYPE.Wander, [new Dialog("I'm always lurking in the shadows, ready to strike.", '#f00')]),
+    GoldenFreddy:new Entity(SPRITES.GoldenFreddy, AI_TYPE.Teleport, [new Dialog("It's me... haunting your dreams.")]),
+    Cupcake:new Entity(SPRITES.Cupcake, AI_TYPE.Wander, [new Dialog("I may be small, but I'm full of mischief and sweetness.","#cc16c5")]),
+    Bonnie:new Entity(SPRITES.Bonnie,  AI_TYPE.Wander, [new Dialog("The music... it soothes my soul and fuels my mischief.", "#00f")]),
+    Freddy:new Entity(SPRITES.Freddy,  AI_TYPE.Wander, [new Dialog("Welcome to Freddy Fazbear's Pizza, where fantasy and fun come to life!", "#964B00")]),
+    Chica: new Entity(SPRITES.Chica, AI_TYPE.Wander, [new Dialog("I'll make sure you're stuffed... with delicious pizza!", "#ff0")]),
+    Foxy:new Entity(SPRITES.Foxy, AI_TYPE.Wander, [new Dialog("Arrr, ye better watch yer back, matey. I'm always ready to run!", "#f00")]),
+    Springtrap: new Entity(SPRITES.Springtrap, AI_TYPE.Wander, [new Dialog("A new beginning, but the past always finds a way to catch up.", "#0a7e1d")]),
 };

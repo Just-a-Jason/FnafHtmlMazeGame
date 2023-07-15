@@ -124,22 +124,23 @@ function CreateStaticScreen() {
     return staticScreenBox;
 }
 
-function CreateDialogBox(sprite, text) {
+function CreateDialogBox(sprite, text, color, shadow=false) {
     if (DIALOGBOX_HOLDER.childElementCount > 8) DIALOGBOX_HOLDER.removeChild(DIALOGBOX_HOLDER.childNodes[8]);
     let dialogBox = document.createElement('div');
     dialogBox.classList.add('dialogBox');
     
     let dialogBoxImg = document.createElement('img');
     dialogBoxImg.src = sprite.File;
-
+    
     let p = document.createElement('p');
     p.innerText = text;
     dialogBox.appendChild(dialogBoxImg);
     dialogBox.appendChild(p);
+    if (color != undefined)  {p.style.color = color; if(shadow) p.style.filter = `drop-shadow(2px 4px 3px ${color})`; };
 
     return dialogBox;
 }
 
-function PushDialogBox(sprite,text,color) {
-    DIALOGBOX_HOLDER.insertBefore(CreateDialogBox(sprite,text), DIALOGBOX_HOLDER.firstChild);
+function PushDialogBox(sprite,text,color, shadow) {
+    DIALOGBOX_HOLDER.insertBefore(CreateDialogBox(sprite,text, color, shadow), DIALOGBOX_HOLDER.firstChild);
 }
