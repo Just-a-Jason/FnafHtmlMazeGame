@@ -31,6 +31,7 @@
             this.spawnPosition = position;
             this.position = position;
             this.sprite = sprite;
+            this.inventory = [];
             this.score = 0;
         }
 
@@ -47,26 +48,35 @@
     };
 
     class Sprite {
-        constructor(file, offset, objectType, tag) {
+        constructor(file, offset, objectType, tag, powerup) {
             this.File = file;
             this.Offset = offset;
             this.objectType = objectType;
             this.tag = tag;
+            this.powerup = powerup;
         }
     };
 //#endregion
 
 //#region Consts
     const editModeUI = document.querySelector('.editModeUI');
-    const SINGLE_GRID_CELL_SIZE = 50;
     const GRID_SIZE = 800;
-
+    
     const CANVAS = document.querySelector('#gameCanvas');
-    const GRID_ROWS = GRID_SIZE / SINGLE_GRID_CELL_SIZE;
+
     const TAGS = {
         Entity:0,
         Player:1
     };
+    
+    const LevelSize = {
+        Small:100,
+        Medium:50,
+        Large:30
+    }
+
+    let SINGLE_GRID_CELL_SIZE = LevelSize.Medium;
+    const GRID_ROWS = GRID_SIZE / SINGLE_GRID_CELL_SIZE;
 
 
     const SOUNDS = {
@@ -74,28 +84,34 @@
         InvertedMusic:new Audio('Sounds/inverted.ogg'),
         Music:new Audio('Sounds/music.ogg'),
         Collected:new Audio('Sounds/collected.ogg'),
-        Movement:new Audio('Sounds/moved.ogg')  
+        Movement:new Audio('Sounds/moved.ogg'),
+        GfLaugh:new Audio('Sounds/gflaugh.ogg') 
     };
 
     const OBJECT_TYPE = {
         Solid:0,
         Collectable:1,
+        PowerUp:4,
         Empty: 2,
-        Exit:3
+        Exit:3,
     };
+
+    const POWERUPS = {
+        FlashLight:0
+    }
 
     const SPRITES = {
         Wall: new Sprite('Sprites/Obstacles/wall.jpg', new Offset(0,0),OBJECT_TYPE.Solid),
-        Freddy: new Sprite('Sprites/Characters/Freddy.png', new Offset(10,5),OBJECT_TYPE.Solid, TAGS.Entity),
-        GoldenFreddy: new Sprite('Sprites/Characters/GoldenFreddy.png', new Offset(10,5),OBJECT_TYPE.Collectable, TAGS.Entity),
-        Chica: new Sprite('Sprites/Characters/Chica.png', new Offset(20,10),OBJECT_TYPE.Solid, TAGS.Entity),
+        Freddy: new Sprite('Sprites/Characters/Freddy.png', new Offset(10,10),OBJECT_TYPE.Solid, TAGS.Entity),
+        GoldenFreddy: new Sprite('Sprites/Characters/GoldenFreddy.png', new Offset(10,10),OBJECT_TYPE.Collectable, TAGS.Entity),
+        Chica: new Sprite('Sprites/Characters/Chica.png', new Offset(10,10),OBJECT_TYPE.Solid, TAGS.Entity),
         Bonnie: new Sprite('Sprites/Characters/Bonnie.gif', new Offset(15,5),OBJECT_TYPE.Solid, TAGS.Entity),
-        Foxy:new Sprite('Sprites/Characters/Foxy.png', new Offset(15,10),OBJECT_TYPE.Solid, TAGS.Entity),
+        Foxy:new Sprite('Sprites/Characters/Foxy.png', new Offset(10,10),OBJECT_TYPE.Solid, TAGS.Entity),
         NightmareFoxy:new Sprite('Sprites/Characters/NightmareFoxy.png', new Offset(0,5),OBJECT_TYPE.Solid,TAGS.Entity),
-        Cupcake:new Sprite('Sprites/Characters/Cupcake.png', new Offset(40,5),OBJECT_TYPE.Solid, TAGS.Entity),
+        Cupcake:new Sprite('Sprites/Characters/Cupcake.png', new Offset(10,10),OBJECT_TYPE.Solid, TAGS.Entity),
         Empty: new Sprite("Sprites/empty.png", new Offset(0,0),OBJECT_TYPE.Empty),
         Cherry: new Sprite('Sprites/Collectable/cherry.png', new Offset(6,6), OBJECT_TYPE.Collectable),
-        Guard: new Sprite('Sprites/guard.png', new Offset(-10,-10), OBJECT_TYPE.Solid, TAGS.Player)
+        Guard: new Sprite('Sprites/guard.png', new Offset(10,10), OBJECT_TYPE.Solid, TAGS.Player),
     };
 
     const AI_TYPE = {
@@ -125,46 +141,76 @@
     let editMode = true;
     let selectedSprite;
     let tmpLevelData;
+    let aiProcessing; 
+    let pointsText;
 //#endregion
     
 //#region Player Set Up
     const player = new Player(SPRITES.Guard, new Vector2(2,2));
+    let crazyMode = false;
     let lastCellSprite;
-    const FOV = 2;
-    function ControllPlayer(key) {
-        let x = player.position.x;
-        let y = player.position.y;
+    let FOV = 2;
 
-        switch (key) {
-            // right
-            case 37: x--; break;
-            // up
-            case 38: y--; break;
-            // left
-            case 39: x++; break;
-            // down
-            case 40: y++; break;
-        }
+    let playerDirections = {
+        UP:-1,
+        DOWN:1,
+        LEFT:-1,
+        RIGTH:1
+    }
+
+    function ControllPlayer(key) {
+        let pos = new Vector2(player.position.x, player.position.y);
         
-        if (checkForCollision(x,y)) {
+        switch (key) {
+            // up
+            case 'w': pos.y += playerDirections.UP; break;
+            // down
+            case 's': pos.y += playerDirections.DOWN; break;
+            // left
+            case 'a': pos.x += playerDirections.LEFT; break;
+            // right
+            case 'd': pos.x += playerDirections.RIGTH; break;
+        }
+
+        // can loop to left side of the level
+        if (pos.x < 0) pos.x += GRID_ROWS;
+        if (pos.y < 0) pos.y += GRID_ROWS;
+        pos.x %= GRID_ROWS;
+        pos.y %= GRID_ROWS;
+
+        if (CheckForCollision(pos)) {
             if (lastCellSprite != undefined) SwapSprite(player.position, lastCellSprite);
             else SwapSprite(player.position, SPRITES.Empty);
     
-            lastCellSprite = GetSprite(x,y);
-            player.position = new Vector2(x,y);
-            
-            if (GetSprite(x,y).objectType === OBJECT_TYPE.Collectable) {
+            lastCellSprite = GetSprite(pos);
+            player.position = pos;
+            let sprite = GetSprite(pos);
+
+            if (sprite.objectType === OBJECT_TYPE.PowerUp) {
+                lastCellSprite = undefined;
+                SwapSprite(player.position, player.sprite);
+                RenderGrid();
+                player.inventory.push(sprite.powerup);
+                UpdatePlayerUI();
+                return;
+            }
+
+            if (sprite.objectType === OBJECT_TYPE.Collectable) {
                 SOUNDS.Collected.play();
-                if (GetSprite(x,y) === SPRITES.GoldenFreddy) {
-                    for (let cell of document.querySelectorAll('.gridCell')) cell.style.filter = 'invert(1)';
-                    RotateLevel(180); 
-                    SOUNDS.Music.pause();
-                    SOUNDS.InvertedMusic.play();
-                    SOUNDS.InvertedMusic.loop = true;
+                if (GetSprite(pos) === SPRITES.GoldenFreddy) {
+                    SwapSprite(player.position, player.sprite);
+                    TurnCrazyMode();
+
+                    lastCellSprite = undefined;
+                    SOUNDS.GfLaugh.play();
+                    RenderGrid();
+                    return;
                 } 
                 
                 //can collect item
                 lastCellSprite = undefined;
+                player.score++;
+                UpdatePointsText();
             }
 
             SwapSprite(player.position, player.sprite);
@@ -176,125 +222,15 @@
 
 //#region  Game Function 
 
-    function InitGame() {
+    function Init() {
         document.addEventListener('keydown', (keyEvent) => {
             if (editMode) return; 
-            ControllPlayer(keyEvent.keyCode);
-        });
-
-        EDITMODE_BUTTON.addEventListener('click', (e) => {
-            editMode = !editMode;
-            if (editMode) {RotateLevel(0);TurnEditMode();}
-            else TurnPlayMode();
-            e.currentTarget.innerText = `EDIT MODE: ${(editMode) ? 'ON' : 'OFF'}`;
-            EDITMODE_UI.style.opacity = !(editMode) ? '0.5' : '1';
-            RenderGrid();
+            ControllPlayer(keyEvent.key);
         });
 
         LoadLevel();
-        let canvas = document.createElement('div');
-        canvas.classList.add('canvas');
-        canvas.style['width'] = GRID_SIZE + "px";
-        canvas.style['height'] = GRID_SIZE + "px";
-
-        for (let row = 0; row < GRID_ROWS; row++) {
-            let gridRow = document.createElement('div');
-            gridRow.classList.add('gridRow');
-            for (let cell = 0; cell < GRID_ROWS; cell++) {
-                let gridCell = document.createElement('div');
-                gridCell.style['width'] = SINGLE_GRID_CELL_SIZE + "px";
-                gridCell.style['height'] = SINGLE_GRID_CELL_SIZE + "px";
-                
-                gridCell.classList.add('gridCell');
-                gridCell.setAttribute('x', cell);
-                gridCell.setAttribute('y', row);
-                let cellImage = document.createElement("img");
-                cellImage.style['width'] = SINGLE_GRID_CELL_SIZE - currentLevel[row][cell].Offset.x + "px";
-                cellImage.style['height'] = SINGLE_GRID_CELL_SIZE - currentLevel[row][cell].Offset.y  + "px";
-                cellImage.classList.add('bluredLevel'); 
-                gridCell.appendChild(cellImage);
-
-                // Map Editor Logic
-                gridCell.addEventListener('click', (e) => {
-                    if (!editMode) return;
-                    let clickPos = GetGridPosition(e.currentTarget);
-
-                    if (GetSprite(clickPos.x, clickPos.y) === selectedSprite) {
-                        if(selectedSprite.tag === TAGS.Player) return;
-                        let cell = GetGridCell(clickPos.x, clickPos.y);
-                        cell.classList.remove('entity');
-                        cell.removeAttribute('entityData');
-                        SwapSprite(clickPos, SPRITES.Empty);
-                        lastHoveredSprite = SPRITES.Empty.File;
-                        RenderGrid();
-                        return; 
-                    }
-                    else {SwapSprite(clickPos, selectedSprite); lastHoveredSprite = selectedSprite.File;};
-                    
-                    if (selectedSprite.tag === TAGS.Player) {
-                        SwapSprite(player.position, SPRITES.Empty);
-                        player.position = clickPos;
-                        player.SyncPositions();
-                    }
-                    else if (selectedSprite.tag === TAGS.Entity) {
-                        let cell = GetGridCell(clickPos.x, clickPos.y);
-                        let entityKey = GetEntityKey();
-                        let entityInGrid = CheckForEntityInGrid(entityKey);
-
-                        if (entityInGrid[0]) {
-                            // swaping the sprite
-                            SwapSprite(entityInGrid[1],SPRITES.Empty);
-                            let entityCell = GetGridCell(entityInGrid[1].x, entityInGrid[1].y);
-                            entityCell.classList.remove('entity');
-                            entityCell.removeAttribute('entityData');
-                        }
-
-                        cell.classList.add('entity');
-                        cell.setAttribute('entityData', entityKey);
-                    }
-
-                    RenderGrid();
-                });
-
-                gridCell.addEventListener('mouseenter', (e) => { 
-                    if(!editMode) return; 
-                    let sprite = e.currentTarget.childNodes[0];
-                    e.currentTarget.classList.add('selectedGridCell');
-                    lastHoveredSprite = sprite.src;
-                    sprite.src = selectedSprite.File;
-                    sprite.style.opacity = '0.5';
-                });
-                
-                gridCell.addEventListener('mouseleave', (e) => { 
-                    if(!editMode) return;
-                    e.currentTarget.classList.remove('selectedGridCell');
-                    let sprite = e.currentTarget.childNodes[0];
-                    sprite.src = lastHoveredSprite;
-                    sprite.style.opacity = '1';
-                });
-
-                gridRow.appendChild(gridCell);
-            }
-            canvas.appendChild(gridRow);
-        }
-
+        BuildLevelGrid();
         CANVAS.appendChild(CreateStaticScreen());
-        CANVAS.appendChild(canvas);
-        
-        // AddEntity(ENTITIES.Foxy, new Vector2(5,6));
-        // AddEntity(ENTITIES.Chica, new Vector2(4,4));
-        // AddEntity(ENTITIES.Freddy, new Vector2(9,9));
-        // AddEntity(ENTITIES.GoldenFreddy, new Vector2(3,2));
-        // AddEntity(ENTITIES.NightmareFoxy, new Vector2(4,2));
-        // AddEntity(ENTITIES.Bonnie, new Vector2(3,2));
-
-        for (let i = 0; i < GRID_ROWS; i++) {
-            checkPattern.push(i % 2 === 0 ? ['#000', '#222'] : ['#222', '#000']);
-        }
-
-        AddRandomStuff();
-        ColorGrid();
-        RenderGrid();
     }
 
     function GetEntityKey() {
@@ -315,25 +251,33 @@
         for (let row = 0; row < GRID_ROWS; row++) {
             let cells = rows[row].querySelectorAll('.gridCell');
             for (let cell = 0; cell < cells.length; cell++) {
-                let sprite = GetSprite(cell, row);
+
+                let pos = new Vector2(cell,row);
+                let sprite = GetSprite(pos);
                 let cellSprite = cells[cell].querySelector('img');
                 let distance = CalculateTheDistance(row,cell);
                 
+                let cCell = cells[cell];
                 if (distance > FOV && !editMode) {
-                    cells[cell].style.opacity = '0';
+                    cCell.style.opacity = '0';
                     cellSprite.style.opacity = '0';
                 } else {
                     cellSprite.style.height = SINGLE_GRID_CELL_SIZE - sprite.Offset.y + "px";
                     cellSprite.style.width = SINGLE_GRID_CELL_SIZE - sprite.Offset.x + "px";
                     cellSprite.src = sprite.File;
                     cellSprite.style.opacity = '1';
-                    cells[cell].style.opacity = '1';
+                    cCell.style.opacity = '1';
+                    if (!editMode && !crazyMode)
+                    cCell.style.filter = 'brightness(1.5)';
+                    if(!crazyMode) cCell.style.filter = 'none';
+                    else cCell.style.filter = 'invert(1)';
                 }
             }
         }
     }
 
     function LoadLevel() {
+        currentLevel.length = 0;
         AddFullRow();
         for (let i = 0; i < GRID_ROWS-2; i++) {
             AddBoxedCollumn();
@@ -371,18 +315,17 @@
         RenderGrid();
     }
 
-    function checkForCollision(x,y) {
-        // collision detection
-        return !GetSprite(x,y).objectType == OBJECT_TYPE.Solid;
+    function CheckForCollision(pos) {
+        return !GetSprite(pos).objectType == OBJECT_TYPE.Solid;
     }
 
     function ProcessAllEntities() {
         for (entity of AI_ENTITIES) {
             switch(entity.aiType) {
-                case 0:
+                case AI_TYPE.Chase:
                     Chase(entity);
                 break;
-                case 1: 
+                case AI_TYPE.Wander: 
                     Wander(entity);
                 break;
             }   
@@ -394,19 +337,18 @@
 
     function Wander(entity) {  
         let freeSpace = ScanGrid(entity.position.x, entity.position.y);
-        
         // cannot move
         if (freeSpace.length == 0) return;
         
         let randomChoice = RandInt(freeSpace.length);
-
-        // vector2 Conversion
-        let pos = Vector2.ToVector2D(freeSpace[randomChoice]);
-        entity.overridedSprite = GetSprite(pos.x, pos.y);
-
+        
+        let pos = freeSpace[randomChoice];
+        entity.overridedSprite = GetSprite(pos);
+        
+        // console.log(entity.overridedSprite);
         SwapSprite(pos, entity.sprite);
         
-        if (entity.overridedSprite != entity.sprite) SwapSprite(entity.position, entity.overridedSprite);
+        if (entity.overridedSprite != entity.sprite && entity.overridedSprite != undefined) SwapSprite(entity.position, entity.overridedSprite);
         else SwapSprite(entity.position, SPRITES.Empty);
         
         SOUNDS.Movement.play();
@@ -423,7 +365,7 @@
 
             let pos = new Vector2(rX, rY);
 
-            if (GetSprite(rX, rY).objectType != OBJECT_TYPE.Empty) continue;
+            if (GetSprite(pos).objectType != OBJECT_TYPE.Empty) continue;
             
             let item = RandInt(100);
             SwapSprite(pos, (item > 80) ? SPRITES.Cherry : SPRITES.Wall);
@@ -448,7 +390,6 @@
 
     function ScanGrid(x,y) {
         let freeSpace = [];
-
         
         let checkPositions = [
             [x, y-1],
@@ -458,13 +399,17 @@
         ];
         
         for (let i = 0; i < checkPositions.length; i++) {
-            let x = checkPositions[i][0];
-            let y = checkPositions[i][1];
-            if (checkForCollision(x,y)) {
-                freeSpace.push([x,y]);
+            let pos = Vector2.ToVector2D(checkPositions[i]);
+            
+            if (pos.x < 0) pos.x += GRID_ROWS;
+            if (pos.y < 0) pos.y += GRID_ROWS;
+            pos.x %= GRID_ROWS;
+            pos.y %= GRID_ROWS;
+
+            if (CheckForCollision(pos)) {
+                freeSpace.push(pos);
                 // GetCurrentGridPosition(x,y).style['background'] = '#0f0';
             }
-            
             // else GetCurrentGridPosition(x,y).style['background'] = '#f00';
         }
 
@@ -479,18 +424,15 @@
         currentLevel[pos.y][pos.x] = sprite;
     }
 
-    function GetSprite(x,y) {
-        return currentLevel[y][x];
+    function GetSprite(pos) {
+        return currentLevel[pos.y][pos.x];
     }
 
     function GetGridPosition(cell) {
-        return new Vector2(cell.getAttribute('x'),cell.getAttribute('y'));
+        return new Vector2(parseInt(cell.getAttribute('x')),parseInt(cell.getAttribute('y')));
     }
 
 //#endregion
-
-// Process all AI
-let process = setInterval(ProcessAllEntities, 1000);
 
 function CreateTileButton(sprite, name) {
     let tileButton = document.createElement('div');
@@ -500,13 +442,29 @@ function CreateTileButton(sprite, name) {
     p.innerText = (name!='Guard') ? name : 'PLAYER';
     img.src = sprite.File;
     tileButton.setAttribute('tile', name);
-    tileButton.classList.add('editBoxCell')
+    tileButton.classList.add('editBoxCell');
     tileButton.appendChild(img);
     tileButton.appendChild(p);
     return tileButton; 
 }
 
 function FillEditBox() {
+    let editModeBtn = document.createElement('div');
+    editModeBtn.classList.add('editModeButton');
+    let p = document.createElement('p');
+    p.innerText = 'PLAY MODE';
+    editModeBtn.appendChild(p);
+    editModeBtn.addEventListener('click', (e) => {
+            editMode = !editMode;
+            if (editMode) {RotateLevel(0);TurnEditMode();}
+            else TurnPlayMode();
+            e.currentTarget.innerText =  (editMode) ? 'PLAY MODE' : 'EDIT MODE';
+            EDITMODE_UI.style.opacity = !(editMode) ? '0.5' : '1';
+            RenderGrid();
+    });
+
+    editModeUI.appendChild(editModeBtn);
+    
     for (let key of Object.keys(SPRITES)) {
         let sprite = SPRITES[key];
         if (sprite === SPRITES.Empty) continue;
@@ -555,6 +513,8 @@ function CreateStaticScreen() {
         SOUNDS.Music.play();
         SOUNDS.Music.loop = true;   
         e.currentTarget.remove();
+        FillEditBox();
+        CreateUI();
     });
 
     return staticScreenBox;
@@ -578,7 +538,10 @@ function ColorGrid() {
 }
 
 function TurnEditMode() {
-    if (SOUNDS.InvertedMusic.paused === false) {
+    clearInterval(aiProcessing);
+    if (crazyMode) {
+        crazyMode = false;
+        InvertPlayerControlls();
         SOUNDS.InvertedMusic.pause();
         SOUNDS.Music.play();
         document.querySelectorAll('.gridCell').forEach((cell) => {
@@ -589,21 +552,26 @@ function TurnEditMode() {
     SwapSprite(player.position, SPRITES.Empty);
     SwapSprite(player.spawnPosition, player.sprite);
     player.position = player.spawnPosition;
+    player.score = 0;
     
     AI_ENTITIES.length = 0;
+    player.inventory = [];
     RenderGrid();
     LoadLevelData();
+    UpdatePointsText();
 }
 
 function SpawnEntities() {
-    for (let entity of document.querySelectorAll('.entity')) {
-        AddEntity(ENTITIES[entity.getAttribute('entityData')],GetGridPosition(entity));
-    }
+    document.querySelectorAll('.entity').forEach((entity) => {
+        let key = entity.getAttribute('entitydata');
+        let pos = GetGridPosition(entity);
+        AddEntity(ENTITIES[key], pos);
+    });
+    aiProcessing = setInterval(ProcessAllEntities, 1000);
     RenderGrid();
 }
 
 function TurnPlayMode() {
-    clearInterval(process);
     CopyLevelData();
     player.score = 0;
     SpawnEntities();
@@ -632,6 +600,194 @@ function LoadLevelData() {
     tmpLevelData = undefined;
 }
 
+function TurnCrazyMode() {
+    crazyMode = true;
+    RotateLevel(180); 
+    SOUNDS.Music.pause();
+    SOUNDS.InvertedMusic.play();
+    SOUNDS.InvertedMusic.loop = true;
+    InvertPlayerControlls();
+}
+
+function InvertPlayerControlls() {
+    // Invert player keys
+    for (let key of Object.keys(playerDirections)) playerDirections[key]*=-1;
+}
+
+function UpdatePointsText() {
+    let z = 5 - String(player.score).length;
+    let playerPointsText = '';
+    for (let i = 0; i < z; i++) {
+    playerPointsText += '0';
+    }
+    pointsText.classList.remove('flipText');
+    playerPointsText += `${player.score} pts`;
+    pointsText.innerText = playerPointsText;
+    void pointsText.offsetWidth;
+    pointsText.classList.add('flipText');
+}
+
+function BuildLevelGrid() {
+    // we have a grid
+    if (document.querySelector('.gameWindow') != undefined) {
+        document.querySelector('.gameWindow').remove();
+    }
+    let gameWindow = document.createElement('div');
+    gameWindow.classList.add('gameWindow');
+
+    let canvas = document.createElement('div');
+    canvas.classList.add('canvas');
+    canvas.style['width'] = GRID_SIZE + "px";
+    canvas.style['height'] = GRID_SIZE + "px";
+
+    for (let row = 0; row < GRID_ROWS; row++) {
+        let gridRow = document.createElement('div');
+        gridRow.classList.add('gridRow');
+        for (let cell = 0; cell < GRID_ROWS; cell++) {
+            let gridCell = document.createElement('div');
+            gridCell.style['width'] = SINGLE_GRID_CELL_SIZE + "px";
+            gridCell.style['height'] = SINGLE_GRID_CELL_SIZE + "px";
+            
+            gridCell.classList.add('gridCell');
+            gridCell.setAttribute('x', cell);
+            gridCell.setAttribute('y', row);
+            let cellImage = document.createElement("img");
+            cellImage.style['width'] = SINGLE_GRID_CELL_SIZE - currentLevel[row][cell].Offset.x + "px";
+            cellImage.style['height'] = SINGLE_GRID_CELL_SIZE - currentLevel[row][cell].Offset.y  + "px";
+            cellImage.classList.add('bluredLevel'); 
+            gridCell.appendChild(cellImage);
+
+            // Map Editor Logic
+            gridCell.addEventListener('click', (e) => {
+                if (!editMode) return;
+                let clickPos = GetGridPosition(e.currentTarget);
+
+                // cannot place on player position
+                if (GetSprite(clickPos) === player.sprite && selectedSprite != player.sprite) return;
+
+                if (GetSprite(clickPos) === selectedSprite) {
+                    if (selectedSprite.tag === TAGS.Player) return;
+                    let cell = GetGridCell(clickPos.x, clickPos.y);
+                    cell.classList.remove('entity');
+                    cell.removeAttribute('entityData');
+                    SwapSprite(clickPos, SPRITES.Empty);
+                    lastHoveredSprite = SPRITES.Empty.File;
+                    RenderGrid();
+                    return; 
+                }
+                else { SwapSprite(clickPos, selectedSprite); lastHoveredSprite = selectedSprite.File; };
+                
+                if (selectedSprite.tag === TAGS.Player) {
+                    SwapSprite(player.position, SPRITES.Empty);
+                    player.position = clickPos;
+                    console.log(clickPos);
+                    player.spawnPosition = clickPos;
+                    console.log(player.position);
+                }
+                else if (selectedSprite.tag === TAGS.Entity) {
+                    let cell = GetGridCell(clickPos.x, clickPos.y);
+                    let entityKey = GetEntityKey();
+                    let entityInGrid = CheckForEntityInGrid(entityKey);
+
+                    if (entityInGrid[0]) {
+                        // swaping the sprite
+                        SwapSprite(entityInGrid[1],SPRITES.Empty);
+                        let entityCell = GetGridCell(entityInGrid[1].x, entityInGrid[1].y);
+                        entityCell.classList.remove('entity');
+                        entityCell.removeAttribute('entityData');
+                    }
+
+                    cell.classList.add('entity');
+                    cell.setAttribute('entityData', entityKey);
+                }
+
+                RenderGrid();
+            });
+
+            gridCell.addEventListener('mouseenter', (e) => { 
+                if(!editMode || selectedSprite == undefined) return; 
+                let sprite = e.currentTarget.childNodes[0];
+                e.currentTarget.classList.add('selectedGridCell');
+                lastHoveredSprite = sprite.src;
+                sprite.src = selectedSprite.File;
+                sprite.style.opacity = '0.5';
+            });
+            
+            gridCell.addEventListener('mouseleave', (e) => { 
+                if(!editMode || selectedSprite == undefined) return;
+                e.currentTarget.classList.remove('selectedGridCell');
+                let sprite = e.currentTarget.childNodes[0];
+                sprite.src = lastHoveredSprite;
+                sprite.style.opacity = '1';
+            });
+
+            gridRow.appendChild(gridCell);
+        }
+        canvas.appendChild(gridRow);
+    }
+
+    gameWindow.appendChild(canvas);
+    CANVAS.appendChild(gameWindow);
+    
+    checkPattern.length = 0;
+    // currentLevel.length = 0;
+    for (let i = 0; i < GRID_ROWS; i++) {
+        checkPattern.push(i % 2 === 0 ? ['#000', '#222'] : ['#222', '#000']);
+    }
+
+    AddRandomStuff();
+    ColorGrid();
+    RenderGrid();
+}
+
+function CreatePowerUpButton(powerup) {
+    let powerUpButton = document.createElement('div');
+    powerUpButton.classList.add('powerUpButton');
+    powerUpButton.style.animation = 'popup 0.5s';
+
+    let powerupImg = document.createElement('img');
+    
+    powerupImg.src = powerup.File;
+    powerUpButton.appendChild(powerupImg);
+
+    return powerUpButton;
+}
+
+function CreateUI() {
+    let userInterface = document.createElement('div');
+    userInterface.classList.add('flexrow'); 
+
+    let ptsText = document.createElement('p');
+    ptsText.innerText = '00000 pts';
+    ptsText.style.width = '50%';
+
+    let powerUpUI = document.createElement('div');
+    for (let i = 0; i < 6; i++) powerUpUI.appendChild(CreatePowerUpButton(SPRITES.Empty));
+    powerUpUI.style.width = '50%';
+    powerUpUI.classList.add('flexrow');
+    powerUpUI.style.justifyContent = 'left';  
+    powerUpUI.classList.add('powerUpUI');
+
+    userInterface.appendChild(powerUpUI);
+    userInterface.appendChild(ptsText);
+    userInterface.classList.add('userInterface');
+    pointsText = ptsText;
+    document.querySelector('.gameWindow').appendChild(userInterface);
+}
+
+function UpdatePlayerUI() {
+    let playerUISlots = document.querySelectorAll('.powerUpButton');
+    for (let i = 0; i < player.inventory.length; i++) {
+        let powerUpSlot;
+        if (playerUISlots[i] == undefined) {powerUpSlot = CreatePowerUpButton(SPRITES.FlashLight); document.querySelector('.powerUpUI').appendChild(powerUpSlot);}
+        else powerUpSlot = playerUISlots[i];
+
+        powerUpSlot.childNodes[0].src = SPRITES.FlashLight.File;
+        powerUpSlot.setAttribute('powerUP', player.inventory[i]);
+        powerUpSlot.style.animation = 'Grow 0.5s'; 
+    }
+}
+
 // Initialize Game 
-InitGame();
-FillEditBox();
+Init();
+pointsText = document.querySelector('.gameWindow p');
