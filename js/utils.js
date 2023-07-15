@@ -16,17 +16,17 @@ function ClampPosition(pos) {
     pos.y %= GRID_ROWS;
 }
 
-function ScanGrid(x,y,areaSize) {
+function ScanGrid(pos, gridScanMode) {
     let freeSpace = [];
-    
-    let checkPositions = [[x, y-1],[x-1, y],[x+1,y],[x, y+1]];
-    
-    for (let i = 0; i < checkPositions.length; i++) {
-        let pos = Vector2.ToVector2D(checkPositions[i]);
         
-        ClampPosition(pos);
+    for (let i = 0; i < gridScanMode.length; i++) {
+        let vec2 = Vector2.ToVector2D(gridScanMode[i]);
+        vec2.x += pos.x;
+        vec2.y += pos.y;
+        
+        ClampPosition(vec2);
 
-        if (CheckForCollision(pos)) freeSpace.push(pos);
+        if (CheckForCollision(vec2)) freeSpace.push(vec2);
     }
 
     return freeSpace;
@@ -145,4 +145,12 @@ function TurnPlayMode() {
     CopyLevelData();
     player.score = 0;
     SpawnEntities();
+}
+
+function ShowElement(htmlElement) {
+    htmlElement.style.display = 'block';
+}
+
+function HideElement(htmlElement) {
+    htmlElement.style.display = 'none';
 }

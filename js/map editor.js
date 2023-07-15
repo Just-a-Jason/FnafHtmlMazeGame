@@ -81,6 +81,7 @@ function BuildLevelGrid() {
     if (document.querySelector('.gameWindow') != undefined) {
         document.querySelector('.gameWindow').remove();
     }
+
     let gameWindow = document.createElement('div');
     gameWindow.classList.add('gameWindow');
 
@@ -100,6 +101,7 @@ function BuildLevelGrid() {
             gridCell.classList.add('gridCell');
             gridCell.setAttribute('x', cell);
             gridCell.setAttribute('y', row);
+
             let cellImage = document.createElement("img");
             cellImage.style['width'] = SINGLE_GRID_CELL_SIZE - currentLevel[row][cell].Offset.x + "px";
             cellImage.style['height'] = SINGLE_GRID_CELL_SIZE - currentLevel[row][cell].Offset.y  + "px";
@@ -129,9 +131,7 @@ function BuildLevelGrid() {
                 if (selectedSprite.tag === TAGS.Player) {
                     SwapSprite(player.position, SPRITES.Empty);
                     player.position = clickPos;
-                    console.log(clickPos);
-                    player.spawnPosition = clickPos;
-                    console.log(player.position);
+                    player.SyncPositions();
                 }
                 else if (selectedSprite.tag === TAGS.Entity) {
                     let cell = GetGridCell(clickPos.x, clickPos.y);
@@ -176,7 +176,7 @@ function BuildLevelGrid() {
     }
 
     gameWindow.appendChild(canvas);
-    CANVAS.appendChild(gameWindow);
+    CANVAS.insertBefore(gameWindow, CANVAS.childNodes[2]);
     
     checkPattern.length = 0;
     for (let i = 0; i < GRID_ROWS; i++) {

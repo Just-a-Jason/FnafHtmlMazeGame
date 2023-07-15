@@ -1,7 +1,7 @@
 const player = new Player(SPRITES.Guard, new Vector2(2,2));
 let crazyMode = false;
 let lastCellSprite;
-let FOV = 2;
+let FOV = 3;
 
 let playerDirections = {UP:-1, DOWN:1, LEFT:-1, RIGTH:1}
 
@@ -31,13 +31,13 @@ function ControllPlayer(key) {
             SwapSprite(player.position, player.sprite);
             RenderGrid();
             player.inventory.push(sprite.powerup);
-            UpdatePlayerUI();
             return;
         }
 
         if (sprite.objectType === OBJECT_TYPE.Collectable) {
             SOUNDS.Collected.play();
             if (GetSprite(pos) === SPRITES.GoldenFreddy) {
+                AI_ENTITIES.splice(AI_ENTITIES.indexOf(ENTITIES.GoldenFreddy),1);
                 SwapSprite(player.position, player.sprite);
                 TurnCrazyMode();
 

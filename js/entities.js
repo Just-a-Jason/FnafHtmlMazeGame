@@ -10,7 +10,7 @@ function AddEntity(entity, position) {
 }
 
 function Wander(entity) {  
-    let freeSpace = ScanGrid(entity.position.x, entity.position.y);
+    let freeSpace = ScanGrid(entity.position,GRID_SCAN_MODE.Cross);
     
     if (freeSpace.length == 0) return;
     
@@ -33,6 +33,16 @@ function Wander(entity) {
 function Chase(entity) {
 }
 
+function Teleport(entity) {
+    SwapSprite(entity.position, SPRITES.Empty);
+    let freeSpace = ScanGrid(player.position, GRID_SCAN_MODE.Full);
+    let pos = freeSpace[RandInt(freeSpace.length)];
+    entity.position = pos;
+    SwapSprite(pos, entity.sprite);
+
+    RenderGrid();
+}
+
 function ProcessAllEntities() {
     for (entity of AI_ENTITIES) {
         switch(entity.aiType) {
@@ -41,6 +51,9 @@ function ProcessAllEntities() {
             break;
             case AI_TYPE.Wander: 
                 Wander(entity);
+            break;
+            case AI_TYPE.Teleport:
+                Teleport(entity);
             break;
         }   
     }

@@ -21,22 +21,15 @@ function CreateUI() {
 }
 
 function UpdatePlayerUI() {
-    let playerUISlots = document.querySelectorAll('.powerUpButton');
-    for (let i = 0; i < player.inventory.length; i++) {
-        let powerUpSlot;
-        if (playerUISlots[i] == undefined) {powerUpSlot = CreatePowerUpButton(SPRITES.FlashLight); document.querySelector('.powerUpUI').appendChild(powerUpSlot);}
-        else powerUpSlot = playerUISlots[i];
-
-        powerUpSlot.childNodes[0].src = SPRITES.FlashLight.File;
-        powerUpSlot.setAttribute('powerUP', player.inventory[i]);
-        powerUpSlot.style.animation = 'Grow 0.5s'; 
-    }
+    let itemSlot = document.querySelectorAll('.powerUpButton')[0]; 
+    itemSlot.classList.remove('inventorySlotJump');
+    void itemSlot.offsetWidth;
+    itemSlot.classList.add('inventorySlotJump');
 }
 
 function CreatePowerUpButton(powerup) {
     let powerUpButton = document.createElement('div');
     powerUpButton.classList.add('powerUpButton');
-    powerUpButton.style.animation = 'popup 0.5s';
 
     let powerupImg = document.createElement('img');
     
@@ -74,22 +67,6 @@ function CreateTileButton(sprite, name) {
 }
 
 function FillEditBox() {
-    let editModeBtn = document.createElement('div');
-    editModeBtn.classList.add('editModeButton');
-    let p = document.createElement('p');
-    p.innerText = 'PLAY MODE';
-    editModeBtn.appendChild(p);
-    editModeBtn.addEventListener('click', (e) => {
-            editMode = !editMode;
-            if (editMode) {RotateLevel(0);TurnEditMode();}
-            else TurnPlayMode();
-            e.currentTarget.innerText =  (editMode) ? 'PLAY MODE' : 'EDIT MODE';
-            EDITMODE_UI.style.opacity = !(editMode) ? '0.5' : '1';
-            RenderGrid();
-    });
-
-    editModeUI.appendChild(editModeBtn);
-    
     for (let key of Object.keys(SPRITES)) {
         let sprite = SPRITES[key];
         if (sprite === SPRITES.Empty) continue;
@@ -109,7 +86,7 @@ function FillEditBox() {
             e.currentTarget.classList.add('selectedTile');
         });
 
-        editModeUI.appendChild(tileButton);
+        EDITMODE_TILES_LIST.appendChild(tileButton);
     }
     selectedSprite = SPRITES[Object.keys(SPRITES)[0]];
     document.querySelector('.editBoxCell').classList.add('selectedTile');
@@ -138,9 +115,31 @@ function CreateStaticScreen() {
         SOUNDS.Music.play();
         SOUNDS.Music.loop = true;   
         e.currentTarget.remove();
-        FillEditBox();
+        FillEditBox();   
         CreateUI();
+        ShowElement(EDITMODE_UI);
+        ShowElement(DIALOGBOX_HOLDER);
     });
-
+    
     return staticScreenBox;
+}
+
+function CreateDialogBox(sprite, text) {
+    if (DIALOGBOX_HOLDER.childElementCount > 8) DIALOGBOX_HOLDER.removeChild(DIALOGBOX_HOLDER.childNodes[8]);
+    let dialogBox = document.createElement('div');
+    dialogBox.classList.add('dialogBox');
+    
+    let dialogBoxImg = document.createElement('img');
+    dialogBoxImg.src = sprite.File;
+
+    let p = document.createElement('p');
+    p.innerText = text;
+    dialogBox.appendChild(dialogBoxImg);
+    dialogBox.appendChild(p);
+
+    return dialogBox;
+}
+
+function PushDialogBox(sprite,text,color) {
+    DIALOGBOX_HOLDER.insertBefore(CreateDialogBox(sprite,text), DIALOGBOX_HOLDER.firstChild);
 }
