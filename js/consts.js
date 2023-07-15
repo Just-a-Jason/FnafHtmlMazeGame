@@ -17,7 +17,6 @@ const LevelSize = {
 let SINGLE_GRID_CELL_SIZE = LevelSize.Small;
 const GRID_ROWS = GRID_SIZE / SINGLE_GRID_CELL_SIZE;
 
-
 const SOUNDS = {
     Click:new Audio('Sounds/click.ogg'), 
     InvertedMusic:new Audio('Sounds/inverted.ogg'),
