@@ -132,6 +132,7 @@ function BuildLevelGrid() {
                     SwapSprite(player.position, SPRITES.Empty);
                     player.position = clickPos;
                     player.SyncPositions();
+                    player.sprite = selectedSprite;
                 }
                 else if (selectedSprite.tag === TAGS.Entity) {
                     let cell = GetGridCell(clickPos.x, clickPos.y);
