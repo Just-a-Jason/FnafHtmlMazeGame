@@ -147,6 +147,10 @@ function TurnPlayMode() {
     SpawnEntities();
 }
 
+function UpdateTile(pos) {
+   // code will be added later
+}
+
 function ShowElement(htmlElement) {
     htmlElement.style.display = 'block';
 }
