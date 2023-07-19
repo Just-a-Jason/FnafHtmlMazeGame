@@ -50,10 +50,6 @@ img {
     filter: blur(1px) brightness(0.5);   
 }
 
-.lookLeft {
-    transform: scaleX(-1);
-}
-
 #gameCanvas {
     flex-direction: row;
     position: relative;
@@ -192,7 +188,7 @@ div.levelEditorUI {
 .selectedTile {
     border: #f00 solid 1px;
     background: #997c7c;
-    transform: translateX(25px) translateY(-5px);
+    transform: translateX(16px) translateY(-5px);
     border-radius: 10px;
 }
 
@@ -328,6 +324,7 @@ main {
 
 .userInterface {
     margin-top: 10px;
+    overflow-y: hidden; 
 }
 
 @keyframes flipText {

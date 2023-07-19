@@ -1,0 +1,25 @@
+.categoryBtn {
+    width: 368px;
+    color: #fff;
+    font-size: 25px;
+    background-color: #181818;
+    text-align: center;
+    margin: 2px 0px 2px 0px;
+    cursor: pointer;
+    border-radius: 10px;
+    border: 4px solid #494848;
+    transition: 0.5s;
+}
+
+.categoryBtn:hover {
+    background-color: #5e5d5d;
+}
+
+.categoryList {
+    margin: 5px 0px 5px 0px;
+    display: none;
+}
+
+.categoryListActive {
+    display: block;
+}

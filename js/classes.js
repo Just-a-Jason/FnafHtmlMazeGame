@@ -48,18 +48,20 @@ class Offset {
 };
 
 class Sprite {
-    constructor(file, offset, objectType, tag, powerup) {
-        this.File = file;
-        this.Offset = offset;
+    constructor(file, offset, objectType, category, tag) {
         this.objectType = objectType;
+        this.category = category;
+        this.Offset = offset;
+        this.File = file;
         this.tag = tag;
-        this.powerup = powerup;
     }
 };
 
+
 class Dialog {
-    constructor(text,color='#fff',hasShadow=true) {
+    constructor(text, audioFile, color='#fff', hasShadow=true) {
         this.hasShadow = hasShadow;
+        this.audioFile = audioFile;
         this.color = color;
         this.text = text;
     }

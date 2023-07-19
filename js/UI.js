@@ -7,7 +7,9 @@ function CreateUI() {
     ptsText.style.width = '50%';
 
     let powerUpUI = document.createElement('div');
+    
     for (let i = 0; i < 6; i++) powerUpUI.appendChild(CreatePowerUpButton(SPRITES.Empty));
+
     powerUpUI.style.width = '50%';
     powerUpUI.classList.add('flexrow');
     powerUpUI.style.justifyContent = 'left';  
@@ -57,7 +59,7 @@ function CreateTileButton(sprite, name) {
     let img = document.createElement('img');
     let p = document.createElement('p');
 
-    p.innerText = (name!='Guard') ? name : 'PLAYER';
+    p.innerText =  name;
     img.src = sprite.File;
     tileButton.setAttribute('tile', name);
     tileButton.classList.add('editBoxCell');
@@ -67,6 +69,7 @@ function CreateTileButton(sprite, name) {
 }
 
 function FillEditBox() {
+    CreateCategories();
     for (let key of Object.keys(SPRITES)) {
         let sprite = SPRITES[key];
         if (sprite === SPRITES.Empty) continue;
@@ -85,8 +88,9 @@ function FillEditBox() {
             selectedSprite = sprite;
             e.currentTarget.classList.add('selectedTile');
         });
-
-        EDITMODE_TILES_LIST.appendChild(tileButton);
+        
+        let categoryList = document.querySelector(`#category-${GetCategoryKey(sprite.category)}`);
+        categoryList.appendChild(tileButton);
     }
     selectedSprite = SPRITES[Object.keys(SPRITES)[0]];
     document.querySelector('.editBoxCell').classList.add('selectedTile');
@@ -117,6 +121,7 @@ function CreateStaticScreen() {
         e.currentTarget.remove();
         FillEditBox();   
         CreateUI();
+        ShowCategory('Obstacles');
         ShowElement(EDITMODE_UI);
         ShowElement(DIALOGBOX_HOLDER);
     });
@@ -141,6 +146,40 @@ function CreateDialogBox(sprite, text, color, shadow=false) {
     return dialogBox;
 }
 
-function PushDialogBox(sprite,text,color, shadow) {
+function PushDialogBox(sprite, text, color, shadow, audioFile) {
+    if (audioFile != undefined) audioFile.play();
     DIALOGBOX_HOLDER.insertBefore(CreateDialogBox(sprite,text, color, shadow), DIALOGBOX_HOLDER.firstChild);
+}
+
+function CreateCategoryButton(category) {
+    let CategoryBtn = document.createElement('div');
+    CategoryBtn.classList.add('categoryBtn');
+    
+    let p = document.createElement('p');
+    p.innerText = category;
+    CategoryBtn.appendChild(p);
+
+    CategoryBtn.setAttribute('onclick', `ShowCategory('${category}')`);
+    
+    EDITMODE_TILES_LIST.appendChild(CategoryBtn);
+    
+    let categoryList = document.createElement('div');
+    categoryList.id = `category-${category}`;
+    categoryList.classList.add('categoryList');
+    EDITMODE_TILES_LIST.appendChild(categoryList);    
+
+}
+
+function CreateCategories() {
+    Object.keys(CATEGORIES).forEach((category) => {
+        CreateCategoryButton(category);
+    });
+}
+
+function ShowCategory(category) {
+    document.querySelectorAll('.categoryList').forEach((category) => {
+        category.classList.remove('categoryListActive');
+    });
+
+    document.querySelector(`#category-${category}`).classList.add('categoryListActive');
 }

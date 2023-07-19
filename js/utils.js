@@ -158,3 +158,10 @@ function ShowElement(htmlElement) {
 function HideElement(htmlElement) {
     htmlElement.style.display = 'none';
 }
+
+function GetCategoryKey(index) {
+    for (let key of Object.keys(CATEGORIES)) {
+        if (CATEGORIES[key] === index) return key;
+    }
+    return null;
+}
