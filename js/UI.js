@@ -119,6 +119,7 @@ function CreateStaticScreen() {
         SOUNDS.Music.play();
         SOUNDS.Music.loop = true;   
         e.currentTarget.remove();
+        
         FillEditBox();   
         CreateUI();
         ShowCategory('Obstacles');
@@ -177,9 +178,16 @@ function CreateCategories() {
 }
 
 function ShowCategory(category) {
-    document.querySelectorAll('.categoryList').forEach((category) => {
-        category.classList.remove('categoryListActive');
-    });
+    let categoryList = document.querySelector(`#category-${category}`)
+    
+    if (categoryList.classList.contains('categoryListActive')) {
+        categoryList.classList.remove('categoryListActive');
+        return;
+    }
 
-    document.querySelector(`#category-${category}`).classList.add('categoryListActive');
+    for (let category of document.querySelectorAll('.categoryList')) {
+        category.classList.remove('categoryListActive');
+    };
+
+    categoryList.classList.add('categoryListActive');
 }

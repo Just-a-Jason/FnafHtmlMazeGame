@@ -36,8 +36,8 @@ function ControllPlayer(key) {
 
         if (sprite.objectType === OBJECT_TYPE.Collectable) {
             SOUNDS.Collected.play();
-            if (GetSprite(pos) === SPRITES.GoldenFreddy) {
-                AI_ENTITIES.splice(AI_ENTITIES.indexOf(ENTITIES.GoldenFreddy),1);
+            if (GetSprite(pos) === SPRITES["Golden Freddy"]) {
+                AI_ENTITIES.splice(AI_ENTITIES.indexOf( SPRITES["Golden Freddy"]),1);
                 SwapSprite(player.position, player.sprite);
                 TurnCrazyMode();
 

@@ -57,7 +57,6 @@ class Sprite {
     }
 };
 
-
 class Dialog {
     constructor(text, audioFile, color='#fff', hasShadow=true) {
         this.hasShadow = hasShadow;

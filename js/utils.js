@@ -1,5 +1,5 @@
 function GetEntityKey() {
-    for (let key of Object.keys(ENTITIES)) {
+    for (let key in ENTITIES) {
         if (ENTITIES[key].sprite === selectedSprite)
             return key;
     }
@@ -78,31 +78,12 @@ function ColorGrid() {
 }
 
 function RenderGrid() {
-    let rows = document.querySelectorAll('.gridRow');
+    let rows = document.querySelectorAll('.gridRow');   
     for (let row = 0; row < GRID_ROWS; row++) {
         let cells = rows[row].querySelectorAll('.gridCell');
         for (let cell = 0; cell < cells.length; cell++) {
-
             let pos = new Vector2(cell,row);
-            let sprite = GetSprite(pos);
-            let cellSprite = cells[cell].querySelector('img');
-            let distance = CalculateTheDistance(row,cell);
-            
-            let cCell = cells[cell];
-            if (distance > FOV && !editMode) {
-                cCell.style.opacity = '0';
-                cellSprite.style.opacity = '0';
-            } else {
-                cellSprite.style.height = SINGLE_GRID_CELL_SIZE - sprite.Offset.y + "px";
-                cellSprite.style.width = SINGLE_GRID_CELL_SIZE - sprite.Offset.x + "px";
-                cellSprite.src = sprite.File;
-                cellSprite.style.opacity = '1';
-                cCell.style.opacity = '1';
-                if (!editMode && !crazyMode)
-                cCell.style.filter = 'brightness(1.5)';
-                if(!crazyMode) cCell.style.filter = 'none';
-                else cCell.style.filter = 'invert(1)';
-            }
+            UpdateTile(pos);
         }
     }
 }
@@ -120,6 +101,7 @@ function InvertPlayerControlls() {
 function TurnEditMode() {
     clearInterval(aiProcessing);
     if (crazyMode) {
+        RotateLevel(0);
         crazyMode = false;
         InvertPlayerControlls();
         SOUNDS.InvertedMusic.pause();
@@ -148,7 +130,25 @@ function TurnPlayMode() {
 }
 
 function UpdateTile(pos) {
-   // code will be added later
+    let gridCell = GetGridCell(pos.x,pos.y);
+    let sprite = GetSprite(pos);
+    let cellSprite = gridCell.querySelector('img');
+    let distance = CalculateTheDistance(pos.y,pos.x);
+    
+    if (distance > FOV && !editMode) {
+        gridCell.style.opacity = '0';
+        cellSprite.style.opacity = '0';
+    } else {
+        cellSprite.style.height = SINGLE_GRID_CELL_SIZE - sprite.Offset.y + "px";
+        cellSprite.style.width = SINGLE_GRID_CELL_SIZE - sprite.Offset.x + "px";
+        cellSprite.src = sprite.File;
+        cellSprite.style.opacity = '1';
+        gridCell.style.opacity = '1';
+        if (!editMode && !crazyMode)
+        gridCell.style.filter = 'brightness(1.5)';
+        if(!crazyMode) gridCell.style.filter = 'none';
+        else gridCell.style.filter = 'invert(1)';
+    }
 }
 
 function ShowElement(htmlElement) {

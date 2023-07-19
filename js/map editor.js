@@ -117,22 +117,24 @@ function BuildLevelGrid() {
                 if (GetSprite(clickPos) === player.sprite && selectedSprite != player.sprite) return;
 
                 if (GetSprite(clickPos) === selectedSprite) {
-                    if (selectedSprite.tag === TAGS.Player) return;
+                    if (selectedSprite.tag === TAGS.Player)  return;
                     let cell = GetGridCell(clickPos.x, clickPos.y);
                     cell.classList.remove('entity');
                     cell.removeAttribute('entityData');
                     SwapSprite(clickPos, SPRITES.Empty);
                     lastHoveredSprite = SPRITES.Empty.File;
-                    RenderGrid();
+                    UpdateTile(clickPos);
                     return; 
                 }
                 else { SwapSprite(clickPos, selectedSprite); lastHoveredSprite = selectedSprite.File; };
                 
                 if (selectedSprite.tag === TAGS.Player) {
                     SwapSprite(player.position, SPRITES.Empty);
+                    UpdateTile(player.position);
+                    player.sprite = selectedSprite;
                     player.position = clickPos;
                     player.SyncPositions();
-                    player.sprite = selectedSprite;
+                    UpdateTile(clickPos);
                 }
                 else if (selectedSprite.tag === TAGS.Entity) {
                     let cell = GetGridCell(clickPos.x, clickPos.y);
@@ -143,6 +145,7 @@ function BuildLevelGrid() {
                         // swaping the sprite
                         SwapSprite(entityInGrid[1],SPRITES.Empty);
                         let entityCell = GetGridCell(entityInGrid[1].x, entityInGrid[1].y);
+                        UpdateTile(entityInGrid[1]);
                         entityCell.classList.remove('entity');
                         entityCell.removeAttribute('entityData');
                     }
@@ -151,7 +154,7 @@ function BuildLevelGrid() {
                     cell.setAttribute('entityData', entityKey);
                 }
 
-                RenderGrid();
+                UpdateTile(clickPos);
             });
 
             gridCell.addEventListener('mouseenter', (e) => { 

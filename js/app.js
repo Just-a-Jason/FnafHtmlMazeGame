@@ -10,7 +10,7 @@ function Init() {
         
     EDITMODE_BUTTON.addEventListener('click', (e) => {
         editMode = !editMode;
-        if (editMode) {RotateLevel(0);TurnEditMode();}
+        if (editMode) {TurnEditMode();}
         else TurnPlayMode();
         e.currentTarget.innerText =  (editMode) ? 'PLAY MODE' : 'EDIT MODE';
         EDITMODE_UI.style.opacity = !(editMode) ? '0.5' : '1';

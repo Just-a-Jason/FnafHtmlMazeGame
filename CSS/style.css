@@ -439,3 +439,17 @@ select {
     text-align: center;
 }
 
+.addExternalBtn {
+    background: #2774a0;
+    color:#fff;
+    text-align: center;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    border: 5px solid #0a4077;
+}

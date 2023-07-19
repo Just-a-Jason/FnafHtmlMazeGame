@@ -35,7 +35,14 @@ const SOUNDS = {
     Movement:new Audio('Sounds/Effects/moved.ogg'),
     GfLaugh:new Audio('Sounds/Effects/gflaugh.ogg'),
     Dialog:new Audio('Sounds/Effects/dialog.ogg'),
+    Transformation:new Audio("Sounds/Characters/Springtrap/transformation.ogg")
 };
+
+// let SpringtapStopms = [];
+
+// for (let i =0; i < 5; i++) {
+//     SpringtapStopms.push(new Audio(`Sounds/Characters/Springtrap/Stomp${i}.ogg`));
+// }
 
 const OBJECT_TYPE = {
     Solid:0,
@@ -71,7 +78,7 @@ const SPRITES = {
 const AI_TYPE = {
     Chase:0,
     Wander:1,
-    Teleport:2
+    Teleport:2,
 };
 
 const GRID_SCAN_MODE = {
@@ -81,13 +88,12 @@ const GRID_SCAN_MODE = {
 
 const ENTITIES = {
     "Nightmare Foxy": new Entity(SPRITES.NightmareFoxy, AI_TYPE.Wander, [new Dialog("I'm always lurking in the shadows, ready to strike.",undefined, '#f00')]),
-    "Golden Freddy":new Entity(SPRITES.GoldenFreddy, AI_TYPE.Teleport, [new Dialog("It's me... haunting your dreams.",undefined)]),
+    "Golden Freddy":new Entity(SPRITES["Golden Freddy"], AI_TYPE.Teleport, [new Dialog("It's me... haunting your dreams.",undefined)]),
     "Cupcake":new Entity(SPRITES.Cupcake, AI_TYPE.Wander, [new Dialog("I may be small, but I'm full of mischief and sweetness.",undefined,"#cc16c5")]),
     "Bonnie":new Entity(SPRITES.Bonnie,  AI_TYPE.Wander, [new Dialog("The music... it soothes my soul and fuels my mischief.", undefined, "#00f")]),
     "Freddy":new Entity(SPRITES.Freddy,  AI_TYPE.Wander, [new Dialog("Welcome to Freddy Fazbear's Pizza, where fantasy and fun come to life!",undefined, "#964B00")]),
     "Chica": new Entity(SPRITES.Chica, AI_TYPE.Wander, [new Dialog("I'll make sure you're stuffed... with delicious pizza!", undefined, "#ff0")]),
     "Foxy":new Entity(SPRITES.Foxy, AI_TYPE.Wander, [new Dialog("Arrr, ye better watch yer back, matey. I'm always ready to run!", undefined, "#f00")]),
-    // "Springtrap": new Entity(SPRITES.Springtrap, AI_TYPE.Wander, [new Dialog("A new beginning, but the past always finds a way to catch up.",SOUNDS.Transformation,"#0a7e1d")]),
     "Springtrap": new Entity(SPRITES.Springtrap, AI_TYPE.Wander, [new Dialog("Behold the transformation! From human to machine, I emerge as Springtrap, an unstoppable force of terror!",SOUNDS.Transformation,"#0a7e1d")]),
-
+    "William Afton": new Entity(SPRITES["William Afton"] , AI_TYPE.Wander, [new Dialog("Behold the transformation! From human to machine, I emerge as Springtrap, an unstoppable force of terror!",SOUNDS.Transformation,"#0a7e1d")]),
 };
