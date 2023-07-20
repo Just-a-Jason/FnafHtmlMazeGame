@@ -38,12 +38,6 @@ const SOUNDS = {
     Transformation:new Audio("Sounds/Characters/Springtrap/transformation.ogg")
 };
 
-// let SpringtapStopms = [];
-
-// for (let i =0; i < 5; i++) {
-//     SpringtapStopms.push(new Audio(`Sounds/Characters/Springtrap/Stomp${i}.ogg`));
-// }
-
 const OBJECT_TYPE = {
     Solid:0,
     Collectable:1,
@@ -53,7 +47,9 @@ const OBJECT_TYPE = {
 };
 
 const POWERUPS = {
-    FlashLight:0
+    FlashLight:0,
+    PhoneCall:2,
+    Mask:3
 }
 
 const SPRITES = {
@@ -71,6 +67,7 @@ const SPRITES = {
     "Cherry": new Sprite('Sprites/Collectable/cherry.png', new Offset(6,6), OBJECT_TYPE.Collectable, CATEGORIES["CollectableItems"]),
     "Flash Light": new Sprite('Sprites/Powerups/flashlight.png', new Offset(6,6), OBJECT_TYPE.Collectable, CATEGORIES.Powerups),
     "Phone Call": new Sprite('Sprites/Powerups/phone call.png', new Offset(6,6), OBJECT_TYPE.Collectable, CATEGORIES.Powerups),
+    "Freddy Mask": new Sprite('Sprites/Powerups/mask.png', new Offset(6,6), OBJECT_TYPE.Collectable, CATEGORIES.Powerups),
     "Guard": new Sprite('Sprites/Player/guard.png', new Offset(10,10), OBJECT_TYPE.Solid, CATEGORIES["Playersprites"], TAGS.Player),
     "Purple Guy": new Sprite('Sprites/Player/purple guy.gif', new Offset(10,10), OBJECT_TYPE.Solid, CATEGORIES["Playersprites"], TAGS.Player),
 };

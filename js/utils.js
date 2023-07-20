@@ -118,6 +118,8 @@ function TurnEditMode() {
     
     AI_ENTITIES.length = 0;
     player.inventory = [];
+    
+    UpdatePlayerUI(true);
     RenderGrid();
     LoadLevelData();
     UpdatePointsText();

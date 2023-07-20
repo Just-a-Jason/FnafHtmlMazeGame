@@ -22,11 +22,28 @@ function CreateUI() {
     document.querySelector('.gameWindow').appendChild(userInterface);
 }
 
-function UpdatePlayerUI() {
-    let itemSlot = document.querySelectorAll('.powerUpButton')[0]; 
-    itemSlot.classList.remove('inventorySlotJump');
-    void itemSlot.offsetWidth;
-    itemSlot.classList.add('inventorySlotJump');
+function UpdatePlayerUI(clear=false) {
+    let itemSlots = document.querySelectorAll('.powerUpButton'); 
+    if (clear) {
+        itemSlots.forEach((slot) => {
+            let slotSprite = slot.querySelector('img');
+            slotSprite.src = SPRITES.Empty.File;
+            slot.classList.remove('inventorySlotJump');
+            void slot.offsetWidth;
+            slot.classList.add('inventorySlotJump');
+        });
+        return;
+    }
+    
+    for (let i = 0; i < player.inventory.length; i++) {
+        let slot = itemSlots[i];
+        let slotSprite = slot.querySelector('img');
+        slotSprite.src = player.inventory[i].File;
+
+        slot.classList.remove('inventorySlotJump');
+        void slot.offsetWidth;
+        slot.classList.add('inventorySlotJump');
+    }
 }
 
 function CreatePowerUpButton(powerup) {

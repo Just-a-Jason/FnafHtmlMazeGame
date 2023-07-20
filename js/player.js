@@ -26,18 +26,21 @@ function ControllPlayer(key) {
         player.position = pos;
         let sprite = GetSprite(pos);
 
-        if (sprite.objectType === OBJECT_TYPE.PowerUp) {
-            lastCellSprite = undefined;
-            SwapSprite(player.position, player.sprite);
-            RenderGrid();
-            player.inventory.push(sprite.powerup);
-            return;
-        }
-
         if (sprite.objectType === OBJECT_TYPE.Collectable) {
             SOUNDS.Collected.play();
+            if(GetSprite(pos).category === CATEGORIES.Powerups) {
+                // full inventory
+                if (player.inventory.length == 6) {lastCellSprite = GetSprite(pos); SwapSprite(player.position, player.sprite); RenderGrid(); return};
+                player.inventory.push(GetSprite(pos));
+                SwapSprite(player.position, player.sprite);
+                lastCellSprite = undefined;
+                UpdatePlayerUI();
+                RenderGrid();
+                return;
+            }
+
             if (GetSprite(pos) === SPRITES["Golden Freddy"]) {
-                AI_ENTITIES.splice(AI_ENTITIES.indexOf( SPRITES["Golden Freddy"]),1);
+                AI_ENTITIES.splice(AI_ENTITIES.indexOf(SPRITES["Golden Freddy"]),1);
                 SwapSprite(player.position, player.sprite);
                 TurnCrazyMode();
 
