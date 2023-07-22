@@ -3,7 +3,7 @@ let crazyMode = false;
 let lastCellSprite;
 let FOV = 3;
 
-let playerDirections = {UP:-1, DOWN:1, LEFT:-1, RIGTH:1}
+let playerDirections = {UP:-1, DOWN:1, LEFT:-1, RIGTH:1};
 
 function ControllPlayer(key) {
     let pos = new Vector2(player.position.x, player.position.y);
@@ -15,7 +15,6 @@ function ControllPlayer(key) {
         case 'd': pos.x += playerDirections.RIGTH; break;
     }
 
-    // can loop to left side of the level
     ClampPosition(pos);
 
     if (CheckForCollision(pos)) {
@@ -50,7 +49,6 @@ function ControllPlayer(key) {
                 return;
             } 
                 
-                //can collect item
             lastCellSprite = undefined;
             player.score++;
             UpdatePointsText();

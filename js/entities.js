@@ -31,11 +31,6 @@ function Wander(entity) {
     SOUNDS.Movement.play();
     entity.position = pos;
     
-    // if (RandInt(30) == 25) {
-    //     let dialogBox = entity.dialogues[RandInt(entity.dialogues.length)];
-    //     PushDialogBox(entity.sprite,dialogBox.text,dialogBox.color,dialogBox.hasShadow,dialogBox.audioFile);
-    // }
-    
     UpdateTile(pos);
 }
 
@@ -54,7 +49,7 @@ function Teleport(entity) {
 }
 
 function ProcessAllEntities() {
-    for (entity of AI_ENTITIES) {
+    AI_ENTITIES.forEach(entity => {
         switch(entity.aiType) {
             case AI_TYPE.Chase:
                 Chase(entity);
@@ -66,7 +61,7 @@ function ProcessAllEntities() {
                 Teleport(entity);
             break;
         }   
-    }
+    });
 }
 
 function SpawnEntities() {

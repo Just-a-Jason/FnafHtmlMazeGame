@@ -25,7 +25,7 @@ function CreateUI() {
 function UpdatePlayerUI(clear=false) {
     let itemSlots = document.querySelectorAll('.powerUpButton'); 
     if (clear) {
-        itemSlots.forEach((slot) => {
+        itemSlots.forEach(slot => {
             let slotSprite = slot.querySelector('img');
             slotSprite.src = SPRITES.Empty.File;
             slot.classList.remove('inventorySlotJump');
@@ -87,7 +87,7 @@ function CreateTileButton(sprite, name) {
 
 function FillEditBox() {
     CreateCategories();
-    for (let key of Object.keys(SPRITES)) {
+    for (let key in SPRITES) {
         let sprite = SPRITES[key];
         if (sprite === SPRITES.Empty) continue;
         let tileButton = CreateTileButton(sprite, key);
@@ -98,9 +98,9 @@ function FillEditBox() {
             if(!editMode || selectedSprite === sprite) return;
             SOUNDS.Click.play();
             
-            for (let cell of document.querySelectorAll('.editBoxCell')) {
+            document.querySelectorAll('.editBoxCell').forEach(cell => {
                 cell.classList.remove('selectedTile');
-            }
+            });
 
             selectedSprite = sprite;
             e.currentTarget.classList.add('selectedTile');
@@ -189,7 +189,7 @@ function CreateCategoryButton(category) {
 }
 
 function CreateCategories() {
-    Object.keys(CATEGORIES).forEach((category) => {
+    Object.keys(CATEGORIES).forEach(category => {
         CreateCategoryButton(category);
     });
 }
@@ -202,9 +202,9 @@ function ShowCategory(category) {
         return;
     }
 
-    for (let category of document.querySelectorAll('.categoryList')) {
+    document.querySelectorAll('.categoryList').forEach(category => {
         category.classList.remove('categoryListActive');
-    };
+    });
 
     categoryList.classList.add('categoryListActive');
 }

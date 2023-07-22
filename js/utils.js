@@ -49,7 +49,7 @@ function GetGridPosition(cell) {
 }
 
 function RotateLevel(deg) {
-    document.querySelectorAll('.gridCell img').forEach((img)=>img.style.transform = `rotate(${deg}deg)`);
+    document.querySelectorAll('.gridCell img').forEach(img => img.style.transform = `rotate(${deg}deg)`);
 }
 
 function GetGridCell(x,y) {
@@ -61,19 +61,20 @@ function CalculateTheDistance(x, y) {
 }
 
 function UnBlurLevel() {
-    for (let cell of document.querySelectorAll('.gridCell img')) {
+    document.querySelectorAll('.gridCell img').forEach(cell => {
         cell.classList.remove('bluredLevel');
-    }
+    });
 }
 
 function ColorGrid() {
     let rows = document.querySelectorAll('div.gridRow');
     for (let row = 0; row < rows.length; row++) {
         let currentCell = 0;
-        for (let cell of rows[row].querySelectorAll('div.gridCell')) {
+
+        rows[row].querySelectorAll('div.gridCell').forEach(cell => {
             cell.style['background'] = checkPattern[row % 2][currentCell % 2];
             currentCell++;
-        }
+        });
     }
 }
 
@@ -89,13 +90,16 @@ function RenderGrid() {
 }
 
 function CheckForEntityInGrid(entityType) {
-    for (let entity of document.querySelectorAll('.entity'))
-        if (entity.getAttribute('entityData') === entityType) return [true, GetGridPosition(entity)];
+
+    document.querySelectorAll('.entity').forEach(entity => {
+        if (entity.getAttribute('entityData') === entityType) 
+        return [true, GetGridPosition(entity)];
+    });
     return [false,undefined];
 }
 
 function InvertPlayerControlls() {
-    for (let key of Object.keys(playerDirections)) playerDirections[key]*=-1;
+    for (let direction in playerDirections) playerDirections[direction]*=-1;
 }
 
 function TurnEditMode() {
@@ -106,7 +110,8 @@ function TurnEditMode() {
         InvertPlayerControlls();
         SOUNDS.InvertedMusic.pause();
         SOUNDS.Music.play();
-        document.querySelectorAll('.gridCell').forEach((cell) => {
+        
+        document.querySelectorAll('.gridCell').forEach(cell => {
             cell.style.filter = 'none';
         });
     }
@@ -162,7 +167,7 @@ function HideElement(htmlElement) {
 }
 
 function GetCategoryKey(index) {
-    for (let key of Object.keys(CATEGORIES)) {
+    for (let key in CATEGORIES) {
         if (CATEGORIES[key] === index) return key;
     }
     return null;
